@@ -19,7 +19,13 @@ export const authOptions: NextAuthOptions = {
         token.tenantId = extractTenantId({ profile, account });
         token.user = user;
       }
-      token.tenantId = token.tenantId ?? extractTenantId({ profile, account: account ?? undefined, token });
+      token.tenantId =
+        token.tenantId ??
+        extractTenantId({
+          profile,
+          account: account ?? undefined,
+          token: token as { tenantId?: string },
+        });
       return token;
     },
     async session({ session, token }) {
