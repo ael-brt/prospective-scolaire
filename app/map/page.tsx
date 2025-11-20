@@ -119,9 +119,7 @@ export default function MapPage() {
         {!loading && !error && (
           <div className="h-[600px] w-full rounded-lg overflow-hidden">
             <MapContainer
-              whenCreated={(map) => {
-                mapRef.current = map;
-              }}
+              ref={mapRef as any}
               center={[48.8566, 2.3522]}
               zoom={11}
               scrollWheelZoom
