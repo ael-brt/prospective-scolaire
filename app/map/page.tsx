@@ -1,18 +1,18 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import NextDynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 
 // Dynamic import react-leaflet components (no SSR)
-const MapContainer = dynamic(
+const MapContainer = NextDynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
   { ssr: false }
 );
-const TileLayer = dynamic(() => import("react-leaflet").then((mod) => mod.TileLayer), { ssr: false });
-const GeoJSON = dynamic(() => import("react-leaflet").then((mod) => mod.GeoJSON), { ssr: false });
-const Marker = dynamic(() => import("react-leaflet").then((mod) => mod.Marker), { ssr: false });
-const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr: false });
+const TileLayer = NextDynamic(() => import("react-leaflet").then((mod) => mod.TileLayer), { ssr: false });
+const GeoJSON = NextDynamic(() => import("react-leaflet").then((mod) => mod.GeoJSON), { ssr: false });
+const Marker = NextDynamic(() => import("react-leaflet").then((mod) => mod.Marker), { ssr: false });
+const Popup = NextDynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr: false });
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
