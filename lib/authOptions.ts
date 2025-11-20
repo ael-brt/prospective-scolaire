@@ -19,7 +19,7 @@ export const authOptions: NextAuthOptions = {
         token.tenantId = extractTenantId({ profile, account });
         token.user = user;
       }
-      token.tenantId = token.tenantId ?? extractTenantId({ profile, account, token });
+      token.tenantId = token.tenantId ?? extractTenantId({ profile, account: account ?? undefined, token });
       return token;
     },
     async session({ session, token }) {
@@ -35,7 +35,7 @@ export const authOptions: NextAuthOptions = {
 
 function extractTenantId(params: {
   profile?: unknown;
-  account?: { scope?: string | null };
+  account?: { scope?: string | null } | null | undefined;
   token?: { tenantId?: string };
 }): string | undefined {
   const profileAny = params.profile as Record<string, any> | undefined;
