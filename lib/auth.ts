@@ -1,5 +1,5 @@
 import { getServerSession, type DefaultSession, type NextAuthOptions } from "next-auth";
-import { authOptions } from "../app/api/auth/[...nextauth]/route";
+import { authOptions } from "./authOptions";
 
 declare module "next-auth" {
   interface Session {
