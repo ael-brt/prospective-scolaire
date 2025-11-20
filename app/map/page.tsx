@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Map as LeafletMap } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 // Dynamic import react-leaflet components (no SSR)
@@ -15,17 +14,8 @@ const GeoJSON = dynamic(() => import("react-leaflet").then((mod) => mod.GeoJSON)
 const Marker = dynamic(() => import("react-leaflet").then((mod) => mod.Marker), { ssr: false });
 const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr: false });
 
-import L from "leaflet";
-
-// Fix default marker icons (Next.js + Leaflet)
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type SectorFeature = {
   id: string;
@@ -48,9 +38,26 @@ type MapData = {
 
 export default function MapPage() {
   const [data, setData] = useState<MapData | null>(null);
+  const [leaflet, setLeaflet] = useState<typeof import("leaflet") | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const mapRef = useRef<LeafletMap | null>(null);
+  const mapRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    import("leaflet").then((L) => {
+      // Fix default marker icons (Next.js + Leaflet)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      });
+      setLeaflet(L);
+    });
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -75,8 +82,8 @@ export default function MapPage() {
 
   // Compute bounds to fit data when available
   const bounds = useMemo(() => {
-    if (!data) return null;
-    const layer = L.geoJSON({
+    if (!data || !leaflet) return null;
+    const layer = leaflet.geoJSON({
       type: "FeatureCollection",
       features: [
         ...(data.sectors ?? []).map((s) => ({
@@ -94,7 +101,7 @@ export default function MapPage() {
       ],
     } as GeoJSON.FeatureCollection);
     return layer.getBounds();
-  }, [data]);
+  }, [data, leaflet]);
 
   useEffect(() => {
     if (mapRef.current && bounds && bounds.isValid()) {
@@ -116,7 +123,7 @@ export default function MapPage() {
       <div className="card p-3">
         {loading && <div className="text-muted text-sm p-4">Chargement des donnees carto...</div>}
         {error && <div className="text-red-400 text-sm p-4">{error}</div>}
-        {!loading && !error && (
+        {!loading && !error && leaflet && (
           <div className="h-[600px] w-full rounded-lg overflow-hidden">
             <MapContainer
               ref={mapRef as any}
@@ -171,6 +178,9 @@ export default function MapPage() {
               })}
             </MapContainer>
           </div>
+        )}
+        {!loading && !error && !leaflet && (
+          <div className="text-sm text-muted p-4">Initialisation de la carte...</div>
         )}
       </div>
     </div>
