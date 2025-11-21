@@ -15,7 +15,7 @@ const Marker = NextDynamic(() => import("react-leaflet").then((mod) => mod.Marke
 const Popup = NextDynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr: false });
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = false;
 
 type SectorFeature = {
   id: string;
