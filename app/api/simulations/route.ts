@@ -4,12 +4,15 @@ import { supabaseAdmin, getTenantRow } from "../../../lib/supabaseServer";
 
 export async function GET() {
   const { user, tenantId } = await getServerSessionWithTenant();
-  if (!user || !tenantId) {
+  const fallbackTenantKey = process.env.DEFAULT_TENANT_KEY;
+  const effectiveTenantKey = tenantId ?? fallbackTenantKey;
+
+  if (!effectiveTenantKey) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const tenant = await getTenantRow(tenantId);
+    const tenant = await getTenantRow(effectiveTenantKey);
 
     const { data, error } = await supabaseAdmin
       .from("simulations")
@@ -41,7 +44,11 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const { user, tenantId } = await getServerSessionWithTenant();
-  if (!user || !tenantId) {
+  const fallbackTenantKey = process.env.DEFAULT_TENANT_KEY;
+  const effectiveTenantKey = tenantId ?? fallbackTenantKey;
+  const createdBy = user?.email ?? user?.name ?? "anonymous";
+
+  if (!effectiveTenantKey) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -58,8 +65,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const tenant = await getTenantRow(tenantId);
-    const createdBy = user.email ?? user.name ?? "unknown";
+    const tenant = await getTenantRow(effectiveTenantKey);
 
     const { data, error } = await supabaseAdmin
       .from("simulations")
